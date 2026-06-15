@@ -191,6 +191,24 @@ def generate_name(client, ep_dir: Path, base: Path) -> str:
 - 1話完結だが、続きを読みたくなる引きで終わる
 - ジャンプ風の大ゴマ・集中線・効果音を積極的に使う
 
+## 【重要】AI作画のためのキャラ混同防止ルール
+AI画像生成ツールで作画するため、以下のルールを必ず守ること：
+
+1. **1コマのメインキャラは原則1〜2人まで**
+   - 3人以上が同じコマに登場する場合は「引き構図（全体シルエット）」か「後ろ姿」にする
+   - 顔のアップや表情を見せたい場合は必ず1人ずつ別コマに分ける
+
+2. **複数人シーンの分割パターン（必ず使うこと）**
+   - 会話シーン：「Aのアップ→Bのアップ→2人の引き」の3コマ構成
+   - 集合シーン：「引きで全員のシルエット」→「メインキャラのアップ」
+   - 見送り・別れ：「後ろ姿・引き構図」で顔を描かない
+
+3. **各コマに「メインキャラ」タグを必ず付ける**
+   - 「メインキャラ：ぼんちゃんのみ」「メインキャラ：ぼんちゃん（左）とゆま（右）」など
+
+4. **キャラ識別のための視覚的差別化を明記する**
+   - 各コマで「ぼんちゃん＝黒アームカバー」など見分けポイントを書く
+
 ## 出力形式（Markdownで）
 
 # ネーム構成案
@@ -207,10 +225,12 @@ def generate_name(client, ep_dir: Path, base: Path) -> str:
 ## P1（扉ページ）
 **レイアウト**：（例：1コマ大ゴマ）
 **コマ1**
+- **メインキャラ**：（例：ぼんちゃんのみ／背景人物はシルエット）
 - 場面・構図：（右上→左下読み順を意識した説明）
-- 登場キャラ：
+- カメラ：（例：バストアップ・正面／引き・斜め45度）
+- 顔の描写：あり（アップ）／なし（後ろ姿・シルエット）
+- キャラ識別ポイント：（例：ぼんちゃん＝黒アームカバー）
 - セリフ/ナレーション：「　」
-- 絵の指示：（カメラアングル、表情、ポーズ、背景）
 - 演出（効果線・トーン等）：
 
 ---
@@ -223,6 +243,7 @@ def generate_name(client, ep_dir: Path, base: Path) -> str:
 - クライマックスページ（P?）：（なぜここが山場か）
 - 効果音一覧：
 - 最終ページの引き方：
+- キャラ混同リスクが高いコマ：（特に注意が必要なコマを列挙）
 """
 
     print("📋 ネーム構成案生成中...")
@@ -324,20 +345,35 @@ def generate_prompts(client, ep_dir: Path, base: Path) -> str:
 
 ## nanobananaプロンプトの条件
 - 画風：日本の少年漫画（ジャンプ系）、白黒、スクリーントーン
-- 読み方向：右上→左下（コマ配置の指示に反映）
+- 読み方向：右上→左下
 - ページ比率：4:5縦長
-- キャラクター外見はシートのプロンプトを必ず使い回す（一貫性）
-- カメラアングル・構図を具体的に英語で
-- 感情・雰囲気を英語で表現
-- 効果線・集中線などの演出指示も含める
+- キャラクター外見はシートの固定プロンプトを必ず使い回す
+
+## 【最重要】キャラ混同を防ぐプロンプトルール
+
+**ルール1：メインキャラを1〜2人に絞って明示する**
+- 「1 character only:」または「2 characters:（左）〇〇（右）〇〇」を必ず冒頭に書く
+- 背景の人物はシルエット扱い：「other characters as silhouettes in background」
+
+**ルール2：キャラクターごとの識別プロンプトを毎回フルで書く**
+- キャラシートの固定プロンプトを省略せずそのままコピーする
+- 「See character sheet」などの省略は絶対にしない
+
+**ルール3：複数人コマの指示パターン**
+- 引き構図：「wide shot, multiple characters as small figures, no face detail」
+- 後ろ姿：「from behind, back view, no face visible」
+- 2人会話：「2 characters, [キャラA] on right side, [キャラB] on left side, both clearly separated」
+
+**ルール4：ネガティブプロンプトに「キャラ混同防止」を追加**
+- 「wrong character design, mixed up characters, inconsistent appearance」を必ず入れる
 
 ## 出力形式（Markdownで）
 
 # nanobanana プロンプト集
 
-## 共通設定（全ページ共通）
+## ページ共通設定
 ```
-style: japanese shonen manga, black and white, screentone, jump magazine style, 4:5 portrait ratio, right-to-left reading
+japanese shonen manga style, black and white, screentone, jump magazine style, 4:5 portrait ratio, right-to-left reading order, detailed linework
 ```
 
 ---
@@ -345,29 +381,35 @@ style: japanese shonen manga, black and white, screentone, jump magazine style, 
 ## P1（扉ページ）
 
 ### コマ1
-**シーン**：（日本語で何を描くか）
+**シーン（日本語）**：何を描くか
+**メインキャラ**：（例：ぼんちゃんのみ）
+**キャラ混同リスク**：低／中／高（高の場合は対策も記載）
+
 **プロンプト**：
 ```
-[キャラ固定プロンプト], [アングル], [表情], [背景], [演出], manga panel, right-to-left layout
+1 character only: [キャラ固定プロンプトをフルで], [表情プロンプト], [カメラアングル], [背景], [演出効果], manga panel composition, japanese shonen manga, black and white
 ```
+
 **ネガティブプロンプト**：
 ```
-color, realistic, western comic, low quality, bad anatomy
+color, realistic, western comic, low quality, bad anatomy, wrong character design, mixed up characters, inconsistent appearance, multiple main characters
 ```
-**吹き出し位置**：（右上/左上/右下/左下）
-**セリフ**：「　」
+
+**吹き出し**：位置（右上/左上/右下/左下）／セリフ「　」
 
 ---
 
-（全コマ同じ形式で）
+（全ページ・全コマ同じ形式で出力）
 
 ---
 
-## キャラクター別 固定プロンプトまとめ
-（各キャラの外見を固定するパーツ一覧）
+## キャラクター別 固定プロンプト（コピペ用）
+（毎回ここからコピーして使う）
 
-## 場所別 背景プロンプトまとめ
-（各場所の背景パーツ一覧）
+## 場所別 背景プロンプト（コピペ用）
+
+## このエピソードのキャラ混同注意コマ一覧
+（複数人が登場するコマと、その対策をまとめる）
 """
 
     print("🎨 nanobananaプロンプト生成中...")
